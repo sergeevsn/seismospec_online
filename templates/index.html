@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+</head>
+
+<body>
+    <section class="hero is-info">
+        <div class="hero-body pl-12 pt-4 pb-4">
+          <p class="title">Seismospec</p>
+          <p class="subtitle">Простой визуализатор спектра для SEG-Y файлов размером не более 5 Мб.</p>
+          <p>Автор <a href="http://sergeevsergei.ru">Сергей Сергеев</a>. Приложение сделано с помощью <a href="https://flask.palletsprojects.com">Flask</a>, <a href="https://plotly.com/javascript">Plotly.js</a> 
+и <a href="https://bulma.io">Bulma</a></p>
+        </div>
+      </section>
+
+    <section class="section">       
+        <div class="columns">
+            <div id="upload-div" class="column is-2">
+                <div class="file">
+                    <form method="post" enctype="multipart/form-data" id="upload-form">
+                        <div class="file">
+                            <label class="file-label">
+                                <input type="file" name="file" id="upload-hidden" 
+                                onChange="document.getElementById('upload-form').submit();" style="display:none;" accept=".sgy, .segy" maxsize="1000000"/>
+                                <button type="button" class="file-input is-medium" onclick="document.getElementById('upload-hidden').click();">Upload My Great File</button>
+                              <span class="file-cta">
+                                <span class="file-icon">
+                                  <i class="fas fa-upload"></i>
+                                </span>
+                                <span class="file-label" style="width:190px"> Выбрать файл SEG-Y… </span>
+                              </span>
+                            </label>
+                          </div>
+                    </form>
+                </div>               
+                <div class = "notification is-info">                      
+                    По умолчанию рассчитывается средний спектр по всем трассам и по всей длине, но можно выбрать прямоугольную область 
+                    на изображении, тогда спектр будет пересчитан.
+                    Можно загрузить SEG-Y файл не более 5мб       
+                      
+                </div>
+               
+            </div>
+
+            <div id="heatmap-div" class="column is-5"></div>
+
+            <div id="linechart-div" class="column is-5"></div>
+        </div>
+    </section>    
+
+<script>
+    var data = [
+    {
+      z: {{ heatmap_z }},
+      x: {{ heatmap_x }},
+      y: {{ heatmap_y }},
+      type: 'heatmap',
+      hoverongaps: false,
+    }
+    ];
+    var layout = {
+        title: {text: '{{ filename }}',  y:0.98, yanchor:'top', font: {weight: 'bold'}},
+        annotations: [],
+        xaxis: {
+            ticks: '',
+            side: 'top',
+            title: 'Trace Number',
+        },
+        yaxis: {
+            ticks: '',
+            ticksuffix: ' ',
+            autorange: 'reversed',           
+            autosize: false,
+            title: 'Time, ms',
+        },
+        dragmode : 'drawrect',
+        width: 700,
+        height: 700,
+    };
+
+    var spec_data = [{
+        x: {{ freq }},
+        y: {{ spec }},
+        type: 'scatter',
+        mode: 'lines',
+      }];      
+    
+    var spec_layout = {
+        title: {text: 'Spectrum',  y:0.98, yanchor:'top',font: {weight: 'bold'}},
+        xaxis: {
+            ticks: '',
+            side: 'top',
+            title: 'Frequency, Hz',
+        },
+        yaxis: {
+            title: 'Spec Amp',
+        },
+        width: 700,
+        height: 700,        
+
+    } ;
+  
+    Plotly.newPlot('heatmap-div', data, layout, {displayModeBar: false});
+    Plotly.newPlot('linechart-div', spec_data, spec_layout);
+
+    var heatmapPlot = document.getElementById('heatmap-div')
+    var spectrumPlot = document.getElementById('linechart-div')
+    heatmapPlot.on('plotly_relayout', function(data){ 
+        var shape = data.shapes[data.shapes.length - 1]
+        if (data.shapes.length > 1) {
+            update_data = {
+                'shapes' : [shape],
+            }
+            Plotly.relayout(heatmapPlot, update_data)
+        }                    
+        
+        fetch('/spec_update', {method: 'POST', body: JSON.stringify([shape.x0, shape.y0, shape.x1, shape.y1]),
+                            headers: {'Content-Type':'application/json'} })
+                            .then(response => response.json())
+                            .then(data => {
+                                var new_spec_data = [{
+                                    x: data['freq'],
+                                    y: data['spec'],
+                                    type: 'scatter',
+                                    mode: 'lines',
+                                }];      
+                                Plotly.react(spectrumPlot, new_spec_data, spec_layout)
+                                }
+                                )
+                            .catch(error => console.error('Error:', error));
+         
+    })
+
+
+</script>
+
+
+</body>
+</html>
