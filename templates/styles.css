@@ -1,0 +1,96 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Open Sans", verdana, arial, sans-serif;
+}
+
+header {
+    background-color: #b7d4ff;
+    color: #000000;
+    text-align: left;
+    padding: 10px 10px 10px 30px;
+}
+
+section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+}
+
+.column {
+    flex: 1;
+    
+    min-width: 150px;
+   
+    padding: 10px;
+    margin: 10px;
+    background-color: #f0f0f0;
+    text-align: center;
+}
+
+.column1 {    
+    max-width: 200px;  
+    padding-top: 0px; 
+}
+
+.column2 {    
+    min-width: 700px; 
+    display: flex;
+    justify-content: center;  
+}
+
+.column3 {    
+    min-width: 600px; 
+    max-width: 600px;
+    display: flex;
+    justify-content: center;  
+}
+
+button {
+    width: 150px;
+    background-color: #b7d4ff;
+    color: rgba(0, 0, 0, 1);
+    padding: 0.5rem;
+    font-family: sans-serif;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    margin-top: 1rem;
+    }
+
+a {
+  color: #e20938b7; /* Default text color */
+  text-decoration: none; /* Remove underline by default */
+  transition: color 0.3s; /* Smooth color transition */
+
+
+  /* Add a subtle bottom border that will be highlighted on hover */
+  position: relative;
+}
+a::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  background-color: #007bff;
+  visibility: hidden;
+  transform: scaleX(0);
+  transition: all 0.3s ease-in-out;
+}
+a:hover::after {
+  visibility: visible;
+  transform: scaleX(1);
+}
+
+a:hover {
+  color: #004085; /* Change color on hover */
+}
+
+
+@media (max-width: 768px) {
+    .column {
+        flex: 1 1 100%;
+    }
+}

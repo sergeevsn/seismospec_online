@@ -1,4 +1,4 @@
-Flask           3.0.3
-gunicorn        22.0.0
 numpy           1.26.4
 segyio          1.9.12
+uvicorn         0.30.1
+fastapi         0.111.0
