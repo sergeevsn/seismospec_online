@@ -53,7 +53,7 @@ function reset_seismics(init = false) {
         
         dragmode : "drawrect",
         newshape : {
-            fillcolor: "rgba(55,95,55,1)",
+            fillcolor: "rgba(55,95,55,0.1)",
         },
         width: 700,
         height: 700,
@@ -101,6 +101,7 @@ function reset_spectrum(init=false, title="Спектр по всем данны
             side: 'top',
             title: 'Частота, Гц',
             range: [0, Math.max(freqs)],
+            mirror: true,
         },
         yaxis: {
             title: 'Амплитуда',
