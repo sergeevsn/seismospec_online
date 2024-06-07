@@ -6,16 +6,25 @@ from fastapi.responses import FileResponse
 from io import BytesIO
 from pathlib import Path
 import aiofiles
+import os
+from contextlib import asynccontextmanager
 
 import json
 
 app = FastAPI()
 
 
-UPLOADED_FNAME = 'uploads/uploaded.sgy'
-TEST_DATA_FNAME = 'uploads/demo_data.sgy'
+uploaded_fname = ""
+UPLOAD_FOLDER = 'uploads'
+TEST_DATA_FNAME =  os.path.join(UPLOAD_FOLDER, 'demo_data.sgy')
 data = None
 dt = 0
+
+@app.on_event("shutdown")
+def delete_file():      
+    if os.path.exists(uploaded_fname):
+        print(f'removed {uploaded_fname}')
+        os.remove(uploaded_fname)
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get('/get_testdata')
+@app.get('/testdata')
 async def get_testdata():  
     global data, dt
     data, dt = read_segy(TEST_DATA_FNAME)  
@@ -35,18 +44,20 @@ async def get_testdata():
 
 @app.post('/upload')
 async def upload_data(file: UploadFile = File(...)):  
-    global data, dt 
+    global data, dt, uploaded_fname
     file_content = await file.read()    
 
-    async with aiofiles.open(UPLOADED_FNAME, "wb") as f:
+    uploaded_fname = os.path.join(UPLOAD_FOLDER, f"{os.getpid()}_{file.filename}")
+
+    async with aiofiles.open(uploaded_fname, "wb") as f:
         await f.write(file_content)
 
-    data, dt = read_segy(UPLOADED_FNAME)      
+    data, dt = read_segy(uploaded_fname)     
     freq, spec = get_spectrum(data, dt)
 
     return [normalize_data(data).tolist(), dt, freq.tolist(), spec.tolist(), file.filename]
 
-@app.post('/update_spec')
+@app.post('/update')
 async def update_spec(request : Request):
     global data, dt
     request_body = await request.json()

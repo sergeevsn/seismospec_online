@@ -7,6 +7,10 @@ var freqs = [];
 var filename = "Файл не загружен";
 var empty = true;
 
+const upload_segy_endpoint = "http://127.0.0.1:8000/upload"
+const update_spec_endpoint = "http://127.0.0.1:8000/update"
+const test_data_endpoint = "http://127.0.0.1:8000/testdata"
+
 function reset_seismics(init = false) {
     if (init) {
         seismics = Array(t_num).fill(0).map(() => Array(x_num).fill(0));
@@ -142,7 +146,7 @@ heatmapPlot.on('plotly_relayout', function(data){
         Plotly.relayout(heatmapPlot, update_data)
         
     }  
-    if (!empty) {
+    if (shape) {
     update_spectrum_data(shape.x0, shape.y0, shape.x1, shape.y1, `Спектр. X: ${ Math.round(shape.x0)}-${ Math.round(shape.x1)}, T: ${ Math.round(shape.y0)}-${ Math.round(shape.y1)}мс`);    
     }
 })
@@ -171,7 +175,7 @@ fileInput.addEventListener('change', () => {
   
   heatmapPlot.style.opacity="0.2"
   spectrumPlot.style.opacity="0.2"  
-  fetch('http://sergeevsergei.ru/seismospec_api/upload', {
+  fetch(upload_segy_endpoint, {
     method: 'POST',
     body: formData
   }) 
@@ -201,7 +205,7 @@ fileInput.addEventListener('change', () => {
 
 const demodataBtn = document.getElementById('demodataBtn');
 demodataBtn.addEventListener('click', () => {
-    fetch('http://sergeevsergei.ru/seismospec_api/get_testdata', {
+    fetch(test_data_endpoint, {
         method: 'GET',       
     }) 
     .then(response => response.json())
@@ -223,7 +227,7 @@ demodataBtn.addEventListener('click', () => {
 
 function update_spectrum_data(x0, y0, x1, y1, title="Спектр по всем данным")
 {
-  fetch('http://sergeevsergei.ru/seismospec_api/update_spec', {method: 'POST', body: JSON.stringify([x0, y0, x1, y1]),
+  fetch(update_spec_endpoint, {method: 'POST', body: JSON.stringify([x0, y0, x1, y1]),
   headers: {'Content-Type':'application/json'} })
   .then(response => response.json())
   .then(data => {
