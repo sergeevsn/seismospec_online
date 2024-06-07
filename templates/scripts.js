@@ -7,9 +7,10 @@ var freqs = [];
 var filename = "Файл не загружен";
 var empty = true;
 
-const upload_segy_endpoint = "http://127.0.0.1:8000/upload"
-const update_spec_endpoint = "http://127.0.0.1:8000/update"
-const test_data_endpoint = "http://127.0.0.1:8000/testdata"
+const upload_segy_endpoint = "https://sergeevsergei.ru/seismospec_api/upload"
+const update_spec_endpoint = "https://sergeevsergei.ru/seismospec_api/update"
+const test_data_endpoint = "https://sergeevsergei.ru/seismospec_api/testdata"
+const closed_endpoint = "https://sergeevsergei.ru/seismospec_api/closed"
 
 function reset_seismics(init = false) {
     if (init) {
@@ -248,4 +249,14 @@ resetBtn.addEventListener('click', () => {
             'shapes' : [],
         }
     Plotly.relayout(heatmapPlot, update_data)
+})
+
+window.addEventListener('beforeunload', function(e) {
+    fetch(closed_endpoint, {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json'
+           },
+           body: JSON.stringify({ event: 'tab_closed'})
+    });
 })
