@@ -107,7 +107,7 @@ function reset_spectrum(init=false, title="Спектр по всем данны
     } ;
 
     var config = {
-        modeBarButtonsToRemove:['pan2d','select2d','lasso2d','resetScale2d', 'zoom2d', 'zoomin2d', 'zoomout2d', 'autoscale2d'],
+        modeBarButtonsToRemove:['pan2d','select2d','lasso2d','resetScale2d', 'zoomin2d', 'zoomout2d'],
         displayModeBar: true,
         showAxisDragHandles : false,
       };
@@ -143,7 +143,7 @@ heatmapPlot.on('plotly_relayout', function(data){
         
     }  
     if (!empty) {
-    update_spectrum_data(shape.x0, shape.y0, shape.x1, shape.y1, `Спектр. Трассы: ${ Math.round(shape.x0)}-${ Math.round(shape.x1)}, время: ${ Math.round(shape.y0*dt_ms)}-${ Math.round(shape.y1*dt_ms)}мс`);    
+    update_spectrum_data(shape.x0, shape.y0, shape.x1, shape.y1, `Спектр. X: ${ Math.round(shape.x0)}-${ Math.round(shape.x1)}, T: ${ Math.round(shape.y0)}-${ Math.round(shape.y1)}мс`);    
     }
 })
 
@@ -158,11 +158,20 @@ uploadBtn.addEventListener('click', () => {
 
 fileInput.addEventListener('change', () => {
   const file = fileInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Слишком большой файл! Попробуйте другой!");
+    this.value = "";
+  }
+  else {
 
   const formData = new FormData();
   formData.append('file', file);
 
-  fetch('http://127.0.0.1:8000/upload', {
+  document.body.classList.add('waiting');
+  
+  heatmapPlot.style.opacity="0.2"
+  spectrumPlot.style.opacity="0.2"  
+  fetch('http://sergeevsergei.ru/seismospec_api/upload', {
     method: 'POST',
     body: formData
   }) 
@@ -177,15 +186,22 @@ fileInput.addEventListener('change', () => {
     reset_seismics();
     reset_spectrum();   
     empty = false; 
+    document.body.classList.remove('waiting');
+    heatmapPlot.style.opacity="1";
+    spectrumPlot.style.opacity="1";
   })
   .catch(error => {
     console.error('Error uploading file:', error);
+    document.body.classList.remove('waiting');
+    heatmapPlot.style.opacity="1";
+    spectrumPlot.style.opacity="1";
   });
+  };
 });
 
 const demodataBtn = document.getElementById('demodataBtn');
 demodataBtn.addEventListener('click', () => {
-    fetch('http://127.0.0.1:8000/get_testdata', {
+    fetch('http://sergeevsergei.ru/seismospec_api/get_testdata', {
         method: 'GET',       
     }) 
     .then(response => response.json())
@@ -207,7 +223,7 @@ demodataBtn.addEventListener('click', () => {
 
 function update_spectrum_data(x0, y0, x1, y1, title="Спектр по всем данным")
 {
-  fetch('http://127.0.0.1:8000/update_spec', {method: 'POST', body: JSON.stringify([x0, y0, x1, y1]),
+  fetch('http://sergeevsergei.ru/seismospec_api/update_spec', {method: 'POST', body: JSON.stringify([x0, y0, x1, y1]),
   headers: {'Content-Type':'application/json'} })
   .then(response => response.json())
   .then(data => {

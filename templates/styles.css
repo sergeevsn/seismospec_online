@@ -4,6 +4,10 @@ body {
     font-family: "Open Sans", verdana, arial, sans-serif;
 }
 
+body.waiting {
+    cursor: wait !important;
+}
+
 header {
     background-color: #b7d4ff;
     color: #000000;

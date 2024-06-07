@@ -5,10 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from io import BytesIO
 from pathlib import Path
+import aiofiles
 
 import json
 
 app = FastAPI()
+
 
 UPLOADED_FNAME = 'uploads/uploaded.sgy'
 TEST_DATA_FNAME = 'uploads/demo_data.sgy'
@@ -36,8 +38,8 @@ async def upload_data(file: UploadFile = File(...)):
     global data, dt 
     file_content = await file.read()    
 
-    with open(UPLOADED_FNAME, "wb") as f:
-        f.write(file_content)
+    async with aiofiles.open(UPLOADED_FNAME, "wb") as f:
+        await f.write(file_content)
 
     data, dt = read_segy(UPLOADED_FNAME)      
     freq, spec = get_spectrum(data, dt)
